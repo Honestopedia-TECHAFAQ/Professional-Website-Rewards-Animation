@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Rewards Animation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f0f2f5;
+            overflow: hidden;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 10px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+
+        .points-container {
+            font-size: 18px;
+        }
+
+        .points-total {
+            font-weight: bold;
+            font-size: 24px;
+            margin-left: 5px;
+            transition: color 0.3s, transform 0.3s;
+        }
+
+        .main-content {
+            margin-top: 80px;
+            text-align: center;
+            position: relative;
+        }
+
+        .post-confirm-btn {
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .post-confirm-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .line-animation {
+            position: absolute;
+            width: 2px;
+            height: 0;
+            background-color: #007bff;
+            transition: height 0.5s, top 0.5s;
+            z-index: 5;
+        }
+
+        .particle {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background-color: #007bff;
+            border-radius: 50%;
+            opacity: 0;
+            animation: particle-fade 1s ease forwards;
+        }
+
+        @keyframes particle-fade {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+        }
+
+        .slide-up-screen {
+            position: fixed;
+            bottom: -100%;
+            left: 0;
+            width: 100%;
+            background-color: rgba(0, 123, 255, 0.95);
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+            transition: bottom 0.5s, opacity 0.5s;
+            opacity: 0;
+            z-index: 20;
+        }
+
+        .confirmation-message {
+            font-size: 18px;
+        }
+
+        .new-points-total {
+            font-weight: bold;
+            font-size: 24px;
+        }
+
+        @media (max-width: 600px) {
+            .header .points-container {
+                font-size: 16px;
+            }
+
+            .points-total {
+                font-size: 20px;
+            }
+
+            .main-content .post-confirm-btn {
+                font-size: 14px;
+                padding: 10px 20px;
+            }
+
+            .slide-up-screen .confirmation-message {
+                font-size: 16px;
+            }
+
+            .new-points-total {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="points-container">
+            Points: <span id="points-total" class="points-total">100</span>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <button id="post-confirm-btn" class="post-confirm-btn">Post and Confirm</button>
+        <div id="line-animation" class="line-animation"></div>
+    </main>
+
+    <div id="slide-up-screen" class="slide-up-screen">
+        <div class="confirmation-message">
+            Points updated! You now have <span id="new-points-total" class="new-points-total"></span> points.
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const postConfirmBtn = document.getElementById('post-confirm-btn');
+            const pointsTotal = document.getElementById('points-total');
+            const lineAnimation = document.getElementById('line-animation');
+            const slideUpScreen = document.getElementById('slide-up-screen');
+            const newPointsTotal = document.getElementById('new-points-total');
+
+            let currentPoints = parseInt(pointsTotal.textContent);
+
+            postConfirmBtn.addEventListener('click', () => {
+                const increment = 50; 
+                const newTotal = currentPoints + increment;
+                const buttonRect = postConfirmBtn.getBoundingClientRect();
+                const headerRect = pointsTotal.getBoundingClientRect();
+
+                lineAnimation.style.top = `${buttonRect.top + buttonRect.height / 2}px`;
+                lineAnimation.style.left = `${buttonRect.left + buttonRect.width / 2}px`;
+                lineAnimation.style.height = `${headerRect.top - buttonRect.top}px`;
+
+                createParticles(buttonRect.left + buttonRect.width / 2, buttonRect.top + buttonRect.height / 2);
+
+                setTimeout(() => {
+                    lineAnimation.style.height = '0';
+                    lineAnimation.style.top = `${buttonRect.top + buttonRect.height / 2}px`;
+                    smoothCount(pointsTotal, currentPoints, newTotal, 1000);
+
+                    pointsTotal.style.color = 'gold';
+                    pointsTotal.style.transform = 'scale(1.2)';
+                    setTimeout(() => {
+                        pointsTotal.style.color = '#fff';
+                        pointsTotal.style.transform = 'scale(1)';
+                    }, 500);
+                    newPointsTotal.textContent = newTotal;
+                    slideUpScreen.style.bottom = '0';
+                    slideUpScreen.style.opacity = '1';
+
+                    setTimeout(() => {
+                        slideUpScreen.style.bottom = '-100%';
+                        slideUpScreen.style.opacity = '0';
+                    }, 2000);
+
+                    currentPoints = newTotal;
+                }, 500);
+            });
+
+            function createParticles(x, y) {
+                for (let i = 0; i < 10; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = `${x}px`;
+                    particle.style.top = `${y}px`;
+                    particle.style.animationDelay = `${Math.random() * 0.5}s`;
+                    document.body.appendChild(particle);
+
+                    setTimeout(() => {
+                        particle.remove();
+                    }, 1000);
+                }
+            }
+
+            function smoothCount(element, start, end, duration) {
+                const range = end - start;
+                const increment = range / (duration / 50);
+                let current = start;
+                const interval = setInterval(() => {
+                    current += increment;
+                    element.textContent = Math.floor(current);
+                    if (current >= end) {
+                        clearInterval(interval);
+                        element.textContent = end;
+                    }
+                }, 50);
+            }
+        });
+    </script>
+</body>
+</html>
